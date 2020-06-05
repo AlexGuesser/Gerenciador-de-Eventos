@@ -14,16 +14,13 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.listview.adapter.EventosAdapter;
+import com.example.listview.database.EventoDAO;
 import com.example.listview.model.Evento;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
-    private final int REQUEST_COD_NOVO_EVENTO = 1;
-    private final int REQUEST_COD_EDITAR_EVENTO = 2;
-    private final int RESULT_COD_NOVO_EVENTO = 10;
-    private final int RESULT_COD_EVENTO_EDITADO = 11;
 
     private int posicao;
     private ListView listaViewEventos;
@@ -36,13 +33,6 @@ public class MainActivity extends AppCompatActivity {
         setTitle("Eventos");
 
         listaViewEventos = findViewById(R.id.listViewEventos);
-        ArrayList<Evento> eventos = criaListaEventos();
-
-        adapterEventos = new EventosAdapter(MainActivity.this, eventos);
-        listaViewEventos.setAdapter(adapterEventos);
-
-
-        listaViewEventos.setAdapter(adapterEventos);
 
         defineOnClickListener();
 
@@ -59,8 +49,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Evento eventoASerRemovido = adapterEventos.getItem(position);
-                        adapterEventos.remove(eventoASerRemovido);
+                        EventoDAO eventoDAO = new EventoDAO(getApplicationContext());
+                        eventoDAO.exluirEvento(eventoASerRemovido);
                         Toast.makeText(MainActivity.this,"Evento Excluído", Toast.LENGTH_SHORT).show();
+                        recuperaListaDeEventos();
                     }
                 });
 
@@ -91,45 +83,34 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, CadastroEventos.class);
                 intent.putExtra("eventoEdicao",eventoClicado);
                 posicao = position;
-                startActivityForResult(intent,REQUEST_COD_EDITAR_EVENTO);
+                startActivity(intent);
 
             }
         });
 
     }
 
-    private ArrayList<Evento> criaListaEventos(){
 
-        ArrayList<Evento> eventos = new ArrayList<>();
-        eventos.add(new Evento("Formatura Eng. Mecânica","Casa Rosa","20/10/2020"));
-        eventos.add(new Evento("Formatura Eng. Civil","Casa Rosa","27/10/2020"));
-        eventos.add(new Evento("Formatura Eng. Química","Casa Rosa","04/11/2020"));
+    @Override
+    protected void onResume() {
+        super.onResume();
+        recuperaListaDeEventos();
+    }
 
-
-        return eventos;
+    private void recuperaListaDeEventos() {
+        EventoDAO eventoDAO = new EventoDAO(getBaseContext());
+        ArrayList<Evento> eventos = new ArrayList<>(eventoDAO.listar());
+        adapterEventos = new EventosAdapter(
+                MainActivity.this,
+                eventos);
+        listaViewEventos.setAdapter(adapterEventos);
     }
 
     public void abreCadastroProdutos(View view){
 
         Intent i = new Intent(this, CadastroEventos.class);
-        startActivityForResult(i,REQUEST_COD_NOVO_EVENTO);
+        startActivity(i);
 
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if(resultCode == RESULT_COD_NOVO_EVENTO){
-
-            Evento evento = (Evento) data.getExtras().getSerializable("evento");
-            adapterEventos.add(evento);
-
-        }else if(resultCode == RESULT_COD_EVENTO_EDITADO){
-
-            Evento eventoEditado = (Evento) data.getExtras().getSerializable("eventoEditado");
-            Evento eventoASerEditado =  adapterEventos.getItem(posicao);
-            adapterEventos.remove(eventoASerEditado);
-            adapterEventos.insert(eventoEditado,posicao);
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
 }

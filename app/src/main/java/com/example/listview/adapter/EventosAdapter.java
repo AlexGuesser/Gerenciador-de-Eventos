@@ -31,11 +31,11 @@ public class EventosAdapter extends ArrayAdapter<Evento> {
         // Lookup view for data population
         TextView textViewNomeEvento = (TextView) convertView.findViewById(R.id.textViewNomeEvento);
         TextView textViewLocalEvento = (TextView) convertView.findViewById(R.id.textViewLocalEvento);
-        TextView editTextDataEvento = (TextView) convertView.findViewById(R.id.textViewDataEvento);
+        TextView textViewDataEvento = (TextView) convertView.findViewById(R.id.textViewDataEvento);
         // Populate the data into the template view using the data object
         textViewNomeEvento.setText(evento.getNomeDoEvento());
         textViewLocalEvento.setText(evento.getLocalDoEvento());
-        editTextDataEvento.setText(evento.getDataDoEvento());
+        textViewDataEvento.setText(evento.getDataDoEvento());
         // Return the completed view to render on screen
         return convertView;
 

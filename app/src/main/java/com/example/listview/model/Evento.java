@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class Evento implements Serializable {
 
+    private int id;
     private String nomeDoEvento;
     private String localDoEvento;
     private String dataDoEvento;
@@ -15,6 +16,21 @@ public class Evento implements Serializable {
         this.nomeDoEvento = nomeDoEvento;
         this.localDoEvento = localDoEvento;
         this.dataDoEvento = dataDoEvento;
+    }
+
+    public Evento(int id, String nomeDoEvento, String localDoEvento, String dataDoEvento) {
+        this.id = id;
+        this.nomeDoEvento = nomeDoEvento;
+        this.localDoEvento = localDoEvento;
+        this.dataDoEvento = dataDoEvento;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNomeDoEvento() {
