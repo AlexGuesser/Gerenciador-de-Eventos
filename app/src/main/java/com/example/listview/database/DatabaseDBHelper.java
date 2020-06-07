@@ -19,16 +19,13 @@ public class DatabaseDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
         db.execSQL( EventoContract.criarTabela());
-
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        //todo implementar um onUpgrade que não remova a tabela com perda de dados.
         db.execSQL(EventoContract.removerTabela());
         db.execSQL(EventoContract.criarTabela());
-
     }
 }
