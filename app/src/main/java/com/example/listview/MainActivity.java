@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         radioButtonCrescente.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                eventos = (ArrayList<Evento>) eventoDAO.ordenaEventos(false);
+                eventos = (ArrayList<Evento>) eventoDAO.ordenaEventos(null,false);
                 adapterEventos = new EventosAdapter(
                         MainActivity.this,
                         eventos);
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         radioButtonDecrescente.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                eventos = (ArrayList<Evento>) eventoDAO.ordenaEventos(true);
+                eventos = (ArrayList<Evento>) eventoDAO.ordenaEventos(null,true);
                 adapterEventos = new EventosAdapter(
                         MainActivity.this,
                         eventos);
@@ -128,18 +128,9 @@ public class MainActivity extends AppCompatActivity {
                 ImageButton mEmptyBtn = (ImageButton) mSearchLayout.findViewById(R.id.action_empty_btn);
                 mEmptyBtn.setVisibility(View.GONE);
 
-                String order = "";
-
-                if(radioButtonCrescente.isChecked()){
-                    order = "ASC";
-                }
-                if(radioButtonDecrescente.isChecked()) {
-                    order = "DESC";
-                }
-
-                if(pesquisa != null) {
+                if (pesquisa != null) {
                     //Realiza a pesquisa através do eventoDAO usando como para parâmetros pesquisa e order
-                    eventos = (ArrayList<Evento>) eventoDAO.pesquisarEventos(pesquisa, order);
+                    eventos = (ArrayList<Evento>) eventoDAO.ordenaEventos(pesquisa, checkOrderRadios());
                     adapterEventos = new EventosAdapter(
                             MainActivity.this,
                             eventos);
@@ -225,6 +216,21 @@ public class MainActivity extends AppCompatActivity {
     private void recuperaListaDeTodosEventos() {
         //Verifica os Radio buttons, recupera todos eventos na ordem determinada.
         //Retornará por padrão ordem crescente. - Johann
+        eventos = (ArrayList<Evento>) eventoDAO.ordenaEventos(null, checkOrderRadios());
+        adapterEventos = new EventosAdapter(
+                MainActivity.this,
+                eventos);
+        listaViewEventos.setAdapter(adapterEventos);
+    }
+
+    //Abre CadastroEventos
+    public void abreCadastroEventos(View view){
+        Intent i = new Intent(this, CadastroEventos.class);
+        startActivity(i);
+    }
+
+    private boolean checkOrderRadios() {
+        //Verifica qual o estado dos Radios de ordem crescente e decrescente.
         boolean ordem_descrescente;
         if(radioButtonCrescente.isChecked()){
             ordem_descrescente = false;
@@ -237,17 +243,7 @@ public class MainActivity extends AppCompatActivity {
         else {
             ordem_descrescente = false;
         }
-        eventos = (ArrayList<Evento>) eventoDAO.ordenaEventos(ordem_descrescente);
-        adapterEventos = new EventosAdapter(
-                MainActivity.this,
-                eventos);
-        listaViewEventos.setAdapter(adapterEventos);
-    }
-
-    //Abre CadastroEventos
-    public void abreCadastroEventos(View view){
-        Intent i = new Intent(this, CadastroEventos.class);
-        startActivity(i);
+        return ordem_descrescente;
     }
 
 }

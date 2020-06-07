@@ -4,6 +4,9 @@ package com.example.listview.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+
+import androidx.annotation.Nullable;
+
 import com.example.listview.database.entity.EventoEntity;
 import com.example.listview.model.Evento;
 import java.util.ArrayList;
@@ -47,11 +50,9 @@ public class EventoDAO {
                 new String[]{String.valueOf(evento.getId())}) == 1;
     }
 
-    /*
+    /* public List<Evento> listar(){
     DEPRECADO
     SUBSTITUÍDO PELO ordenaEventos() - Johann
-    public List<Evento> listar(){
-
         List<Evento> eventos = new ArrayList<>();
         Cursor cursor = dbGateway.getDataBase().rawQuery(SQL_LISTAR_TODOS,null);
 
@@ -65,10 +66,10 @@ public class EventoDAO {
         cursor.close();
         return eventos;
     }
-    */
 
-    public List<Evento> pesquisarEventos(String pesquisa,String order){
-
+    public List<Evento> pesquisarEventos(String pesquisa, String order){
+    DEPRECADO
+    Substituído por ordenaEventos().
         List<Evento> eventos = new ArrayList<>();
         pesquisa = pesquisa.trim();
         Cursor cursor;
@@ -90,24 +91,32 @@ public class EventoDAO {
         cursor.close();
         return eventos;
     }
+    - Johann */
 
-    public List<Evento> ordenaEventos(boolean ordem_decrescente) {
+    public List<Evento> ordenaEventos(@Nullable String pesquisa, boolean ordem_decrescente) {
+        /* ordenaEventos substitui agora também o pesquisaeventos().
+        Se a pesquisa for nula, ele apenas busca todos os Eventos na ordem indicada.
+        Se a pesquisa não for nula, busca a string
+        - Johann */
 
         //Alterada a forma de inicialização do cursor para evitar copia e cola de código. - Johann
         List<Evento> eventos = new ArrayList<>();
         Cursor cursor;
+
         String ordem = "ASC"; //Se ordem_decrescente não for verdadeiro, retorna sempre ascendente. - Johann
-        if (ordem_decrescente) ordem = "DESC";
-        /*
-        Adicionado "COLLATE NOCASE" na query para que eventos com letras iniciais minúsculas e maiúsuclas
-        Sejam ordenados conjuntamente, ao invés de primeiro os maiúsculos e depois os minúsculos.
+        if (ordem_decrescente) ordem = "DESC"; //Se for verdadeiro, muda o valor da variável ordem. - Johann
+
+        /* Adicionado "COLLATE NOCASE" na query para que eventos com letras iniciais minúsculas e maiúsuclas
+        sejam ordenados conjuntamente, ao invés de primeiro os maiúsculos e depois os minúsculos.
         Ordem crescente antes: Aaa Bbb Ddd ccc
         Ordem crescente agora: Aaa Bbb ccc Ddd
-        - Johann
-         */
-        cursor = dbGateway.getDataBase().query(EventoEntity.TABLE_NAME, new String[]{"*"},
-                "", null, "", "",
-                EventoEntity.COLUMN_NAME_NOME + " COLLATE NOCASE " + ordem);
+        - Johann */
+
+        if (pesquisa != null) { //Busca a string em ordem. - Johann
+            cursor = dbGateway.getDataBase().rawQuery("select distinct * from " + EventoEntity.TABLE_NAME + " where " + EventoEntity.COLUMN_NAME_NOME + " LIKE \"%" + pesquisa + "%\" or " + EventoEntity.COLUMN_NAME_LOCAL + " LIKE \"%" + pesquisa + "%\" or " + EventoEntity.COLUMN_NAME_DATA + " LIKE \"%" + pesquisa + "%\"" + " ORDER BY " + EventoEntity.COLUMN_NAME_NOME + " COLLATE NOCASE " + ordem, null);
+        } else { //Busca * em ordem. - Johann
+            cursor = dbGateway.getDataBase().query(EventoEntity.TABLE_NAME, new String[]{"*"}, "", null, "", "", EventoEntity.COLUMN_NAME_NOME + " COLLATE NOCASE " + ordem);
+        }
 
         while (cursor.moveToNext()){
             int id = cursor.getInt(cursor.getColumnIndex(EventoEntity._ID));
