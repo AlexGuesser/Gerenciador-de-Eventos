@@ -102,8 +102,9 @@ public class MainActivity extends AppCompatActivity {
                 /*
                 EventoDAO.listar() deprecado.
                 recuperaListaDeTodosEventos() agora possui todas as verificações referentes aos radio buttons.
-                Assim a integralidade do código referente a pesquisa do SQL e a ordem do resultado fica
-                toda concentrada nos mesmos dois métodos: recuperaListaDeTodosEventos() e EventoDAO.ordenaEventos(boolean)
+                Assim a integralidade do código referente a query e a ordem do resultado fica
+                concentrada nos mesmos dois métodos: recuperaListaDeTodosEventos() e EventoDAO.ordenaEventos(boolean),
+                excetuada a função de pesquisa em si.
                 - Johann
                  */
                 recuperaListaDeTodosEventos();
@@ -144,7 +145,6 @@ public class MainActivity extends AppCompatActivity {
                             eventos);
                     listaViewEventos.setAdapter(adapterEventos);
                 }
-
                 return true;
             }
         });
