@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.MenuItemCompat;
 
 import android.content.DialogInterface;
@@ -32,39 +33,46 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private int posicao;
+
     private ListView listaViewEventos;
     private ArrayAdapter<Evento> adapterEventos;
     private MaterialSearchView searchView;
-    private LinearLayout linearLayoutBotoes;
 
     private RadioButton radioButtonCrescente;
     private RadioButton radioButtonDecrescente;
+    private EventoDAO eventoDAO;
+    private ArrayList<Evento> eventos = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Configurando Toolbar
         Toolbar toolbar = findViewById(R.id.toolbarPrincipal);
         toolbar.setTitle("EVENTOS");
         setSupportActionBar(toolbar);
 
-        //Configurando Radio Buttons
+        //Configurando Radio Buttons e ConstraintLayout
         radioButtonCrescente = findViewById(R.id.radioButtonCrescente);
         radioButtonDecrescente = findViewById(R.id.radioButtonDecrescente);
-        linearLayoutBotoes = findViewById(R.id.LinearLayoutBotoes);
+        final ConstraintLayout constraintLayout = findViewById(R.id.constraintLayoutBotoes);
 
         //Confirando o searchView
         searchView =  findViewById(R.id.materialSearchPrincipal);
 
+        //Configurando o eventoDAO
+        eventoDAO = new EventoDAO(getBaseContext());
 
-        //
+        //Configura o ListView
+        listaViewEventos = findViewById(R.id.listViewEventos);
+
+
+        //Listener do radioButtonCrescente que apresenta todos os eventos de forma alfabética crescente
         radioButtonCrescente.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EventoDAO eventoDAO = new EventoDAO(getApplicationContext());
-                ArrayList<Evento> eventos = new ArrayList<>(eventoDAO.ordenaEventosDeFormaCrescente());
+                eventos = (ArrayList<Evento>) eventoDAO.ordenaEventosDeFormaCrescente();
                 adapterEventos = new EventosAdapter(
                         MainActivity.this,
                         eventos);
@@ -72,11 +80,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Listener do radioButtonCrescente que apresenta todos os eventos de forma alfabética decrescente
         radioButtonDecrescente.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EventoDAO eventoDAO = new EventoDAO(getApplicationContext());
-                ArrayList<Evento> eventos = new ArrayList<>(eventoDAO.ordenaEventosDeFormaDecrescente());
+                eventos = (ArrayList<Evento>) eventoDAO.ordenaEventosDeFormaDecrescente();
                 adapterEventos = new EventosAdapter(
                         MainActivity.this,
                         eventos);
@@ -89,19 +97,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSearchViewShown() {
 
-
-
-                linearLayoutBotoes.setVisibility(View.GONE);
-
+                //Coloca a visibilidade do ConstraintLayout da parte inferior da página como invisível
+                constraintLayout.setVisibility(View.GONE);
 
             }
 
             @Override
             public void onSearchViewClosed() {
 
-                EventoDAO eventoDAO = new EventoDAO(getApplicationContext());
-                ArrayList<Evento> eventos = new ArrayList<>();
 
+                // Se o radio button Crescente estiver selecionado, retorna todos os eventos de forma alfabética Crescente
                 if(radioButtonCrescente.isChecked()){
                     eventos = (ArrayList<Evento>) eventoDAO.ordenaEventosDeFormaCrescente();
                     adapterEventos = new EventosAdapter(
@@ -109,17 +114,21 @@ public class MainActivity extends AppCompatActivity {
                             eventos);
                     listaViewEventos.setAdapter(adapterEventos);
                 }
+                // Se o radio button Decrescente estiver selecionado, retorna todos os eventos de forma alfabética decrescente
                 else if(radioButtonDecrescente.isChecked()) {
                     eventos = (ArrayList<Evento>) eventoDAO.ordenaEventosDeFormaDecrescente();
                     adapterEventos = new EventosAdapter(
                             MainActivity.this,
                             eventos);
                     listaViewEventos.setAdapter(adapterEventos);
-                }else{
+                }
+                //Quando nenhum dos RadioButton está selecionado, retorna todos os eventos na ordem natural do banco de dados
+                else{
                     recuperaListaDeTodosEventos();
                 }
 
-                linearLayoutBotoes.setVisibility(View.VISIBLE);
+                //Coloca a visibilidade do ConstraintLayout como visível
+                constraintLayout.setVisibility(View.VISIBLE);
 
             }
         });
@@ -132,11 +141,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public boolean onQueryTextChange(String newText) {
+            public boolean onQueryTextChange(final String pesquisa) {
 
+                //Coloca a visibilidade do botão [x] da caixa de pesquisa como invisível
                 View mSearchLayout = findViewById(R.id.search_layout);
                 ImageButton mEmptyBtn = (ImageButton) mSearchLayout.findViewById(R.id.action_empty_btn);
                 mEmptyBtn.setVisibility(View.GONE);
+
 
                 String order = "";
 
@@ -147,10 +158,9 @@ public class MainActivity extends AppCompatActivity {
                     order = "DESC";
                 }
 
-
-                EventoDAO eventoDAO = new EventoDAO(getApplicationContext());
-                if(newText != null) {
-                    ArrayList<Evento> eventos = new ArrayList<>(eventoDAO.pesquisarEventos(newText, order));
+                if(pesquisa != null) {
+                    //Realiza a pesquisa através do eventoDAO usando como para parâmetros pesquisa e order
+                    eventos = (ArrayList<Evento>) eventoDAO.pesquisarEventos(pesquisa, order);
                     adapterEventos = new EventosAdapter(
                             MainActivity.this,
                             eventos);
@@ -161,13 +171,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-        listaViewEventos = findViewById(R.id.listViewEventos);
-
-
+        //Define o evento de clique para os itens do ListView(evento). Abre a cadastro activity para possíveis edições no evento selecionado
         defineOnClickListener();
 
+        //Define evento de longClick para os itens do ListView. Com um longClick é aberto um alertDiolog para possível exclussão
         listaViewEventos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -181,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Evento eventoASerRemovido = adapterEventos.getItem(position);
-                        EventoDAO eventoDAO = new EventoDAO(getApplicationContext());
                         eventoDAO.exluirEvento(eventoASerRemovido);
                         Toast.makeText(MainActivity.this,"Evento Excluído", Toast.LENGTH_SHORT).show();
                         recuperaListaDeTodosEventos();
@@ -224,6 +230,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //Método chamdo quando ocorre cliques nos itens da ListView. Abre CadastroEventos para edições no item clicado.
     private void defineOnClickListener(){
 
         listaViewEventos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -233,7 +240,6 @@ public class MainActivity extends AppCompatActivity {
                 Evento eventoClicado = adapterEventos.getItem(position);
                 Intent intent = new Intent(MainActivity.this, CadastroEventos.class);
                 intent.putExtra("eventoEdicao",eventoClicado);
-                posicao = position;
                 startActivity(intent);
 
             }
@@ -242,11 +248,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //onResume apresenta todos os eventos de forma crescente,decrescente ou natural
     @Override
     protected void onResume() {
-
-        EventoDAO eventoDAO = new EventoDAO(getApplicationContext());
-        ArrayList<Evento> eventos = new ArrayList<>();
 
         if(radioButtonCrescente.isChecked()){
             eventos = (ArrayList<Evento>) eventoDAO.ordenaEventosDeFormaCrescente();
@@ -265,24 +269,21 @@ public class MainActivity extends AppCompatActivity {
             recuperaListaDeTodosEventos();
         }
 
-
-
-
-
         super.onResume();
 
     }
 
+    //Recupera todos eventos sem nenhuma ordenação ou filtro
     private void recuperaListaDeTodosEventos() {
-        EventoDAO eventoDAO = new EventoDAO(getBaseContext());
-        ArrayList<Evento> eventos = new ArrayList<>(eventoDAO.listar());
+        eventos = (ArrayList<Evento>) eventoDAO.listar();
         adapterEventos = new EventosAdapter(
                 MainActivity.this,
                 eventos);
         listaViewEventos.setAdapter(adapterEventos);
     }
 
-    public void abreCadastroProdutos(View view){
+    //Abre CadastroEventos
+    public void abreCadastroEventos(View view){
 
         Intent i = new Intent(this, CadastroEventos.class);
         startActivity(i);
