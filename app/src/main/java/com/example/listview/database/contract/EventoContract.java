@@ -1,7 +1,7 @@
 package com.example.listview.database.contract;
 
+//Removido import desnecessário - Johann
 import com.example.listview.database.entity.EventoEntity;
-import com.example.listview.model.Evento;
 
 public final class EventoContract {
 
